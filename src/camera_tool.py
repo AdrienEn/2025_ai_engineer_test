@@ -156,7 +156,7 @@ Voici la situation observée :
 
 Analyse s'il y a un non-respect d'une règle de sécurité, et cite les articles ou normes concernées si possible.
 Sois précis, utilise les textes français en vigueur.
-Ignore les éléments non liés à la sécurité.
+Ignore les éléments non liés à la sécurité. Sois bref et concis. Ne me dis pas bonjour.
 """
     )
 
@@ -208,23 +208,18 @@ def analyze_camera(
         Images provenant de : {nom_camera}
         Voici les objets detectes :
         {objets}
-        Indique s'il y a un risque visible. 
-        À la fin de ta réponse, ajoute toujours une ligne au format EXACT suivant (sans autre texte) :
-        RISQUE_DETECTE: OUI
-        ou
-        RISQUE_DETECTE: NON"""
+        Indique s'il y a un risque visible. Sois bref et concis. Ne me dis pas bonjour.
+        """
     )
 
     # Prepare output folder for annotated images
     annotated_folder = os.path.join(images_folder, "../annotated_images", camera_name)
     os.makedirs(annotated_folder, exist_ok=True)
 
-    keywords = ["risque_detecte: oui"]
-
     # Select images sorted alphabetically
     image_paths = [
         os.path.join(images_folder, filename)
-        for filename in sorted(os.listdir(images_folder)[:5])
+        for filename in sorted(os.listdir(images_folder))
         if filename.lower().endswith(".jpg")
     ]
 
@@ -257,18 +252,13 @@ def analyze_camera(
         response = chain.invoke({"nom_camera": camera_name, "objets": objects_text})
         text = response.content if hasattr(response, "content") else str(response)
 
-        # Check if risk was detected in the text response
-        contains_risk = contains_risk_text(response, keywords)
-
-        regulatory_advice = ""
-
         # If risk detected, get regulatory advice and annotate image
-        if contains_risk:
-            regulatory_advice = regulatory_tool.func(
-                f"Camera: {camera_name}\nImage: {image_name}\n{objects_text}\nAnalyse initiale: {text}"
-            )
-            annotate_image(image_path, objects, annotated_folder)
+        regulatory_advice = regulatory_tool.func(
+            f"Camera: {camera_name}\nImage: {image_name}\n{objects_text}\nAnalyse initiale: {text}"
+        )
+        annotate_image(image_path, objects, annotated_folder)
 
+        print("REGULATORY ADVICE: ", regulatory_advice)
         return f"[ {image_name}]\n{text}\nVérification réglementaire : {regulatory_advice}\n"
 
     results = []
