@@ -1,2 +1,2 @@
-# requirements.txt
-# Add your project dependencies here
+langchain[openai]
+opencv-python
